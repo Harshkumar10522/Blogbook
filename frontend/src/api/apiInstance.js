@@ -82,5 +82,16 @@ export const deleteBlog = async (blogId) => {
     throw error.response ? error.response.data : error.message;
   }
 }
+export const getAllPublicBlogs = async ({ page = 1, limit = 10, theme = "" }) => {
+  try {
+    const response = await blogAxiosInstance.get(`/public`, {
+      params: { page, limit, theme },
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching public blogs:", error.response?.data || error.message);
+    throw error;
+  }
+};
 
 export default {axiosInstance , blogAxiosInstance};

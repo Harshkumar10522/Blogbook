@@ -17,7 +17,7 @@ const Navbar = () => {
         <div className="flex justify-between items-center h-16">
           <Link to="/" className="flex items-center space-x-2">
             <PenTool className="h-8 w-8 text-indigo-600" />
-            <span className="text-2xl font-bold text-gray-900">Jotly</span>
+            <span className="text-2xl font-bold text-gray-900">BlogBook</span>
           </Link>
           
           <div className="flex items-center space-x-8">
@@ -29,6 +29,9 @@ const Navbar = () => {
               <>
                 <Link to="/dashboard" className="text-gray-600 hover:text-indigo-600 transition-colors">
                   Dashboard
+                </Link>
+                <Link to="/blogs" className="text-gray-600 hover:text-indigo-600 transition-colors">
+                  Blogs
                 </Link>
                 <Link to="/compose" className="text-gray-600 hover:text-indigo-600 transition-colors">
                   Write

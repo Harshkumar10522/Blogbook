@@ -8,6 +8,7 @@ import ProtectedRoute from "./components/ProtectedRoutes";
 import Dashboard from "./components/Dashboard";
 import Compose from "./components/Compose";
 import BlogDetail from "./components/BlogDetail";
+import AllBlogs from "./components/AllBlogs";
 
 function App() {
   return (
@@ -38,6 +39,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <BlogDetail />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/blogs"
+            element={
+              <ProtectedRoute>
+                <AllBlogs />
               </ProtectedRoute>
             }
           />

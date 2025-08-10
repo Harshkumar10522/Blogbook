@@ -77,6 +77,34 @@ const getAllBlogs = asyncHandler(async(req, res) => {
         }));
 })
 
+const getAllPublicBlogs = asyncHandler(async(req, res) => {
+    const {page, limit, theme} = req.query;
+    const pageNumber = parseInt(page) || 1;
+    const pageSize = parseInt(limit) || 10;
+    const filters = {};
+    if (theme) {
+        filters.theme = theme;
+    }
+    const skip = (pageNumber - 1) * pageSize;
+    const blogs = await Blog.find(filters)
+        .skip(skip)
+        .limit(pageSize)
+        .populate('author', 'username')
+        .sort({ createdAt: -1 });
+    const totalBlogs = await Blog.countDocuments(filters);
+    const totalPages = Math.ceil(totalBlogs / pageSize);
+
+    // ✅ FIXED: The response now uses the correct ApiResponse format
+    // that the frontend expects.
+    return res
+        .status(200)
+        .json(new ApiResponse(200, {
+            blogs,
+            totalBlogs,
+            totalPages,
+            currentPage: pageNumber
+        }, 'All public blogs fetched successfully'));
+});
 // get a single blog post by id 
 const getBlogById = asyncHandler(async(req, res) => {
     const {id} = req.params;
@@ -108,51 +136,45 @@ const shareBlog = asyncHandler(async(req,res)=>{
     }
 })
 
-// lets handle the search functionality
-const searchBlogs = asyncHandler(async(req,res)=> {
-    const {query , page , limit} = req.query;
 
+const searchBlogs = asyncHandler(async(req,res)=> {
+    const {query , page , limit, theme} = req.query; 
     if (!query) {
         throw new ApiError(400, 'Search query is required');
     }
-
     const pageNumber = parseInt(page) || 1;
-    const pageSize = parseInt(limit) || 5;
-
+    const pageSize = parseInt(limit) || 10;
+    
+    // ✅ FIXED: Added author filter to only search within the logged-in user's blogs.
     const filters = {
+        author: req.user._id, // This requires verifyJWT middleware on the route
         $or:[
-            {
-                title: {$regex: query,$options:"i"}
-            },
-            {
-                description: {$regex:query,$options:"i"}
-            }
+            { title: {$regex: query, $options:"i"} },
+            { description: {$regex:query, $options:"i"} }
         ]
     };
 
+    if (theme) {
+        filters.theme = theme;
+    }
     const skip = (pageNumber-1) * pageSize;
     const blogs = await Blog
-    .find(filters)
-    .skip(skip)
-    .limit(pageSize)
-    .populate('author', 'username') // populate author details
-    .sort({ createdAt: -1 }); // sort by createdAt in descending order
-
-    if(blogs.length === 0) {
-        return res.status(404).json(new ApiResponse(404, 'No blogs found matching the search criteria'));
-    }
-
+        .find(filters)
+        .skip(skip)
+        .limit(pageSize)
+        .populate('author', 'username')
+        .sort({ createdAt: -1 });
+    
     const totalBlogs = await Blog.countDocuments(filters);
     const totalPages = Math.ceil(totalBlogs / pageSize);
 
-    return res.status(200).json(new ApiResponse(200, 'Blogs fetched successfully', {
+    return res.status(200).json(new ApiResponse(200, {
         blogs,
         totalBlogs,
         totalPages,
         currentPage: pageNumber
-    }));
+    }, 'Blogs fetched successfully'));
 })
-
 // delete a blog post by id
 const deleteBlog = asyncHandler(async (req, res) => {
     const { id } = req.params;
@@ -178,4 +200,4 @@ const deleteBlog = asyncHandler(async (req, res) => {
         .json(new ApiResponse(200, 'Blog post deleted successfully', deletedBlog));
 });
 
-export { postBlog , getAllBlogs , getBlogById , shareBlog , searchBlogs ,deleteBlog };
+export { postBlog , getAllBlogs , getBlogById , shareBlog , searchBlogs ,deleteBlog , getAllPublicBlogs };
